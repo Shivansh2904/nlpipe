@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  # ── NLPipe FastAPI server ──────────────────────────────────────────────────
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: nlpipe-api
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      # HuggingFace cache — mount a volume to avoid re-downloading models
+      - TRANSFORMERS_CACHE=/cache/transformers
+      - HF_HOME=/cache/hf
+    volumes:
+      - model_cache:/cache
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  # ── React playground (nginx) ───────────────────────────────────────────────
+  playground:
+    build:
+      context: ./playground
+      dockerfile: Dockerfile
+    container_name: nlpipe-playground
+    ports:
+      - "5173:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  # Named volume keeps downloaded models between container restarts
+  model_cache:
+    driver: local

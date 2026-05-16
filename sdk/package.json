@@ -1,0 +1,33 @@
+{
+  "name": "nlpipe-sdk",
+  "version": "1.0.0",
+  "description": "TypeScript SDK for the NLPipe NLP inference API",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["nlp", "huggingface", "sentiment", "ner", "nlpipe", "typescript"],
+  "author": "Shivansh Mishra",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.4",
+    "typescript": "^5.4.5"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": ["**/*.test.ts"],
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "tsconfig.json"
+      }
+    }
+  }
+}
