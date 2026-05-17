@@ -142,6 +142,23 @@ class KeywordsResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Translation
+# ---------------------------------------------------------------------------
+
+class TranslateRequest(BaseModel):
+    text: str = Field(..., min_length=1, max_length=5000)
+    source_lang: str = Field("en", description="ISO 639-1 source language code")
+    target_lang: str = Field("fr", description="ISO 639-1 target language code")
+
+
+class TranslateResponse(BaseModel):
+    translation: str
+    source_lang: str
+    target_lang: str
+    text: str
+
+
+# ---------------------------------------------------------------------------
 # Health & Models
 # ---------------------------------------------------------------------------
 

@@ -94,6 +94,35 @@ def load_summarizer() -> Any:
 # Keyword Extraction (TF-IDF via sklearn)
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Translation (Helsinki-NLP opus-mt)
+# ---------------------------------------------------------------------------
+
+_translator_cache: dict = {}
+
+
+def load_translator(src: str, target: str) -> Any:
+    """
+    Return a HuggingFace translation pipeline backed by
+    Helsinki-NLP/opus-mt-{src}-{target}.  Results are cached by (src, target).
+    """
+    key = (src, target)
+    if key not in _translator_cache:
+        from transformers import pipeline  # type: ignore
+
+        model_name = f"Helsinki-NLP/opus-mt-{src}-{target}"
+        _translator_cache[key] = pipeline(
+            "translation",
+            model=model_name,
+            device=-1,
+        )
+    return _translator_cache[key]
+
+
+# ---------------------------------------------------------------------------
+# Keyword Extraction (TF-IDF via sklearn)
+# ---------------------------------------------------------------------------
+
 def load_keyword_extractor() -> Any:
     """
     Return a configured sklearn TfidfVectorizer suitable for keyword

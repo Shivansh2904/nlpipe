@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>A self-hosted NLP API serving 5 tasks through one unified REST interface — no API keys, no rate limits, runs on your hardware.</strong>
+  <strong>A self-hosted NLP API serving 6 tasks through one unified REST interface — no API keys, no rate limits, runs on your hardware.</strong>
 </p>
 
 <p align="center">
@@ -39,11 +39,12 @@ NLPipe is a production-grade NLP inference server that wraps best-in-class Huggi
 ┌──────────────────────────▼───────────────────────────────┐
 │                    NLPipe API (FastAPI)                   │
 │  POST /sentiment  POST /ner  POST /classify              │
-│  POST /summarize  POST /keywords  GET /health            │
-└──────┬──────┬──────┬──────────┬───────────────────────────┘
-       │      │      │          │
-   distil  bert  bart-large  distilbart  sklearn
-   -bert   NER   mnli        cnn-12-6    TF-IDF
+│  POST /summarize  POST /keywords  POST /translate        │
+│  GET /health  GET /models                                │
+└──────┬──────┬──────┬──────────┬──────┬────────────────────┘
+       │      │      │          │      │
+   distil  bert  bart-large  distilbart  sklearn  Helsinki-NLP
+   -bert   NER   mnli        cnn-12-6    TF-IDF   opus-mt-*
 ```
 
 ---
@@ -57,6 +58,7 @@ NLPipe is a production-grade NLP inference server that wraps best-in-class Huggi
 | **Zero-Shot Classification** | `facebook/bart-large-mnli` | text + candidate labels | per-label confidence scores |
 | **Text Summarization** | `sshleifer/distilbart-cnn-12-6` | long text | abstractive summary |
 | **Keyword Extraction** | NLTK/TF-IDF (sklearn) | text | ranked keywords + scores |
+| **Translation** | `Helsinki-NLP/opus-mt-{src}-{target}` | text + language codes | translated text (loaded on demand per language pair) |
 
 ---
 
@@ -130,6 +132,12 @@ curl -X POST http://localhost:8000/keywords \
   -d '{"text": "Machine learning transforms how we process natural language.", "top_k": 5}'
 # → {"keywords":[{"word":"machine learning","score":0.8234},...],"text":"..."}
 
+# Translation (Helsinki-NLP opus-mt, loaded on demand)
+curl -X POST http://localhost:8000/translate \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Hello, how are you?", "source_lang": "en", "target_lang": "fr"}'
+# → {"translation":"Bonjour, comment allez-vous ?","source_lang":"en","target_lang":"fr","text":"..."}
+
 # Health Check
 curl http://localhost:8000/health
 # → {"status":"ok","models_loaded":{...},"uptime_seconds":142.3}
@@ -169,6 +177,14 @@ console.log(sum.summary);
 // Keywords
 const kw = await nlp.keywords('Deep learning and transformer models...', 8);
 kw.keywords.forEach(k => console.log(k.word, k.score));
+
+// Translate (defaults: en → fr)
+const tr = await nlp.translate('Hello, how are you?');
+console.log(tr.translation);  // Bonjour, comment allez-vous ?
+
+// Translate with explicit language codes
+const tr2 = await nlp.translate('Good morning', 'en', 'de');
+console.log(tr2.translation);  // Guten Morgen
 ```
 
 All methods return fully typed `Promise<T>` results. Errors throw `NLPipeError` with `statusCode` and `detail` properties.
@@ -217,6 +233,17 @@ Response: `{ summary, original_length, summary_length }`
 | `top_k` | `int` | `10` | Number of keywords to return (1–50) |
 
 Response: `{ keywords: [{ word, score }], text }`
+
+### `POST /translate`
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `text` | `string` | — | Source text to translate (1–5,000 chars) |
+| `source_lang` | `string` | `"en"` | ISO 639-1 source language code |
+| `target_lang` | `string` | `"fr"` | ISO 639-1 target language code |
+
+Response: `{ translation, source_lang, target_lang, text }`
+
+The appropriate `Helsinki-NLP/opus-mt-{src}-{target}` model is loaded on demand and cached for subsequent requests with the same language pair.
 
 ### `GET /health`
 Response: `{ status, models_loaded: { sentiment, ner, classifier, summarizer, keywords }, uptime_seconds }`

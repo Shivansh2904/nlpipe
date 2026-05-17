@@ -199,6 +199,62 @@ describe('NLPipeClient', () => {
   });
 
   // -------------------------------------------------------------------------
+  // translate()
+  // -------------------------------------------------------------------------
+
+  describe('translate()', () => {
+    it('returns translation, source_lang, target_lang, and text on success', async () => {
+      const payload = {
+        translation: 'Bonjour le monde',
+        source_lang: 'en',
+        target_lang: 'fr',
+        text: 'Hello world',
+      };
+      mockFetch(200, payload);
+
+      const result = await client.translate('Hello world');
+
+      expect(result.translation).toBe('Bonjour le monde');
+      expect(result.source_lang).toBe('en');
+      expect(result.target_lang).toBe('fr');
+      expect(result.text).toBe('Hello world');
+    });
+
+    it('posts to /translate with correct body including language codes', async () => {
+      mockFetch(200, {
+        translation: 'Hola mundo',
+        source_lang: 'en',
+        target_lang: 'es',
+        text: 'Hello world',
+      });
+      const mock = global.fetch as jest.Mock;
+
+      await client.translate('Hello world', 'en', 'es');
+
+      const body = JSON.parse((mock.mock.calls[0][1] as RequestInit).body as string);
+      expect(body.text).toBe('Hello world');
+      expect(body.source_lang).toBe('en');
+      expect(body.target_lang).toBe('es');
+    });
+
+    it('uses default source_lang=en and target_lang=fr when not specified', async () => {
+      mockFetch(200, {
+        translation: 'Bonjour',
+        source_lang: 'en',
+        target_lang: 'fr',
+        text: 'Hello',
+      });
+      const mock = global.fetch as jest.Mock;
+
+      await client.translate('Hello');
+
+      const body = JSON.parse((mock.mock.calls[0][1] as RequestInit).body as string);
+      expect(body.source_lang).toBe('en');
+      expect(body.target_lang).toBe('fr');
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // health()
   // -------------------------------------------------------------------------
 

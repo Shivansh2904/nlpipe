@@ -28,6 +28,8 @@ from schemas import (
     SentimentResponse,
     SummarizeRequest,
     SummarizeResponse,
+    TranslateRequest,
+    TranslateResponse,
 )
 from models import (
     load_classifier,
@@ -35,6 +37,7 @@ from models import (
     load_ner,
     load_sentiment,
     load_summarizer,
+    load_translator,
 )
 
 # ---------------------------------------------------------------------------
@@ -174,6 +177,16 @@ def list_models() -> List[ModelInfo]:
             approx_size_mb=1,
             description="TF-IDF vectorizer with unigram + bigram support for keyword extraction.",
         ),
+        ModelInfo(
+            name="Helsinki-NLP/opus-mt-{src}-{target}",
+            task="translate",
+            loaded=False,
+            approx_size_mb=300,
+            description=(
+                "Helsinki-NLP opus-mt translation models. Loaded on demand per "
+                "language pair (e.g. opus-mt-en-fr). ~300 MB per pair."
+            ),
+        ),
     ]
 
 
@@ -303,3 +316,36 @@ def keywords(req: KeywordsRequest) -> KeywordsResponse:
     ]
 
     return KeywordsResponse(keywords=kw_list, text=req.text)
+
+
+@app.post("/translate", response_model=TranslateResponse, tags=["NLP"])
+def translate(req: TranslateRequest) -> TranslateResponse:
+    """
+    Translate text between languages using Helsinki-NLP opus-mt models.
+
+    - **text**: Source text to translate (1–5,000 characters).
+    - **source_lang**: ISO 639-1 source language code (default "en").
+    - **target_lang**: ISO 639-1 target language code (default "fr").
+
+    Models are loaded on demand per language pair and cached for subsequent
+    requests.
+    """
+    if not req.text.strip():
+        raise HTTPException(status_code=422, detail="text must not be empty")
+
+    try:
+        pipe = load_translator(req.source_lang, req.target_lang)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Could not load translation model for {req.source_lang}→{req.target_lang}: {exc}",
+        ) from exc
+
+    result = pipe(req.text)
+    translation: str = result[0]["translation_text"]
+    return TranslateResponse(
+        translation=translation,
+        source_lang=req.source_lang,
+        target_lang=req.target_lang,
+        text=req.text,
+    )

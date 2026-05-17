@@ -81,6 +81,13 @@ export interface KeywordsResult {
   text: string;
 }
 
+export interface TranslateResult {
+  translation: string;
+  source_lang: string;
+  target_lang: string;
+  text: string;
+}
+
 export interface ModelsLoaded {
   sentiment: boolean;
   ner: boolean;
@@ -229,6 +236,25 @@ export class NLPipeClient {
     const payload: Record<string, unknown> = { text };
     if (topK !== undefined) payload['top_k'] = topK;
     return this.request<KeywordsResult>('POST', '/keywords', payload);
+  }
+
+  /**
+   * Translate text from one language to another using Helsinki-NLP opus-mt models.
+   *
+   * @param text       - Source text to translate (1–5,000 characters).
+   * @param sourceLang - ISO 639-1 source language code (default "en").
+   * @param targetLang - ISO 639-1 target language code (default "fr").
+   */
+  async translate(
+    text: string,
+    sourceLang = 'en',
+    targetLang = 'fr',
+  ): Promise<TranslateResult> {
+    return this.request<TranslateResult>('POST', '/translate', {
+      text,
+      source_lang: sourceLang,
+      target_lang: targetLang,
+    });
   }
 
   /**
