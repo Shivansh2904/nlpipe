@@ -63,6 +63,14 @@ NLPipe is a production-grade NLP inference server that wraps best-in-class Huggi
 
 ---
 
+## Deploy
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Shivansh2904/nlpipe)
+
+A `render.yaml` blueprint provisions the API on a Standard plan with a 10 GB persistent disk for HuggingFace model caching.
+
+---
+
 ## Quick Start
 
 ### Option A — Docker Compose (recommended)
