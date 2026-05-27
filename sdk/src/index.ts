@@ -192,6 +192,21 @@ export class NLPipeClient {
   }
 
   /**
+   * Classify the sentiment of multiple texts in a single batched call.
+   *
+   * @param texts - Array of texts to analyse (1–100 items, each 1–10,000 chars).
+   */
+  async sentimentBatch(
+    texts: string[],
+  ): Promise<{ results: SentimentResult[]; count: number }> {
+    return this.request<{ results: SentimentResult[]; count: number }>(
+      'POST',
+      '/sentiment/batch',
+      { texts },
+    );
+  }
+
+  /**
    * Extract named entities from text (persons, organisations, locations, …).
    *
    * @param text - Input text (1–10,000 characters).

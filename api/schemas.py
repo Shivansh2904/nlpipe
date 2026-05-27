@@ -40,6 +40,26 @@ class SentimentResponse(BaseModel):
     text: str = Field(..., description="Original input text")
 
 
+class SentimentBatchRequest(BaseModel):
+    texts: List[str] = Field(..., min_length=1, max_length=100, description="List of texts to analyse (max 100)")
+
+    @field_validator("texts")
+    @classmethod
+    def validate_texts(cls, v: List[str]) -> List[str]:
+        cleaned = [t.strip() for t in v if t.strip()]
+        if not cleaned:
+            raise ValueError("texts must contain at least one non-empty string")
+        for t in cleaned:
+            if len(t) > 10_000:
+                raise ValueError("each text must not exceed 10,000 characters")
+        return cleaned
+
+
+class SentimentBatchResponse(BaseModel):
+    results: List[SentimentResponse]
+    count: int
+
+
 # ---------------------------------------------------------------------------
 # Named Entity Recognition
 # ---------------------------------------------------------------------------

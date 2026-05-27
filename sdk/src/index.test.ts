@@ -66,6 +66,43 @@ describe('NLPipeClient', () => {
   });
 
   // -------------------------------------------------------------------------
+  // sentimentBatch()
+  // -------------------------------------------------------------------------
+
+  describe('sentimentBatch()', () => {
+    it('returns results array and count for the given texts', async () => {
+      const payload = {
+        results: [
+          { label: 'POSITIVE', score: 0.9998, text: 'Great!' },
+          { label: 'NEGATIVE', score: 0.9876, text: 'Terrible.' },
+        ],
+        count: 2,
+      };
+      mockFetch(200, payload);
+
+      const result = await client.sentimentBatch(['Great!', 'Terrible.']);
+
+      expect(result.count).toBe(2);
+      expect(result.results).toHaveLength(2);
+      expect(result.results[0].label).toBe('POSITIVE');
+      expect(result.results[0].score).toBeCloseTo(0.9998);
+      expect(result.results[1].label).toBe('NEGATIVE');
+      expect(result.results[1].text).toBe('Terrible.');
+    });
+
+    it('posts to /sentiment/batch with { texts: [...] } body', async () => {
+      mockFetch(200, { results: [], count: 0 });
+      const mock = global.fetch as jest.Mock;
+
+      await client.sentimentBatch(['hello', 'world']);
+
+      expect(mock.mock.calls[0][0]).toBe('http://localhost:8000/sentiment/batch');
+      const body = JSON.parse((mock.mock.calls[0][1] as RequestInit).body as string);
+      expect(body).toEqual({ texts: ['hello', 'world'] });
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // ner()
   // -------------------------------------------------------------------------
 

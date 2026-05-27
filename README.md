@@ -54,6 +54,7 @@ NLPipe is a production-grade NLP inference server that wraps best-in-class Huggi
 | Task | Model | Input | Output |
 |------|-------|-------|--------|
 | **Sentiment Analysis** | `distilbert-base-uncased-finetuned-sst-2-english` | text | `label` (POSITIVE/NEGATIVE) + `score` |
+| **Batch Sentiment** | `distilbert-base-uncased-finetuned-sst-2-english` | list of texts (max 100) | list of `{ label, score, text }` + `count` |
 | **Named Entity Recognition** | `dslim/bert-base-NER` | text | list of entities with type, score, offsets |
 | **Zero-Shot Classification** | `facebook/bart-large-mnli` | text + candidate labels | per-label confidence scores |
 | **Text Summarization** | `sshleifer/distilbart-cnn-12-6` | long text | abstractive summary |
@@ -107,6 +108,12 @@ curl -X POST http://localhost:8000/sentiment \
   -H "Content-Type: application/json" \
   -d '{"text": "This product exceeded all my expectations!"}'
 # → {"label":"POSITIVE","score":0.999832,"text":"..."}
+
+# Batch Sentiment Analysis (up to 100 texts in one call)
+curl -X POST http://localhost:8000/sentiment/batch \
+  -H "Content-Type: application/json" \
+  -d '{"texts": ["I love this!", "This is terrible.", "Meh, it works."]}'
+# → {"results":[{"label":"POSITIVE","score":0.9998,"text":"I love this!"},...],"count":3}
 
 # Named Entity Recognition
 curl -X POST http://localhost:8000/ner \
@@ -162,6 +169,15 @@ const nlp = new NLPipeClient('http://localhost:8000');
 const s = await nlp.sentiment('I love how simple this API is!');
 console.log(s.label, s.score);  // POSITIVE  0.9998
 
+// Batch Sentiment (up to 100 texts in a single call)
+const batch = await nlp.sentimentBatch([
+  'I love this!',
+  'This is terrible.',
+  'Meh, it works.',
+]);
+console.log(batch.count);  // 3
+batch.results.forEach(r => console.log(r.label, r.text));
+
 // NER
 const n = await nlp.ner('Barack Obama was born in Honolulu, Hawaii.');
 n.entities.forEach(e => console.log(e.word, e.label));  // Barack Obama PER  ...
@@ -201,6 +217,13 @@ Interactive Swagger UI is served at **http://localhost:8000/docs**. ReDoc is at 
 | `text` | `string` | Input text (1–10,000 chars) |
 
 Response: `{ label, score, text }`
+
+### `POST /sentiment/batch`
+| Field | Type | Description |
+|-------|------|-------------|
+| `texts` | `string[]` | List of texts to analyse (1–100 items, each 1–10,000 chars) |
+
+Response: `{ results: [{ label, score, text }], count }`
 
 ### `POST /ner`
 | Field | Type | Description |

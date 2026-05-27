@@ -24,6 +24,8 @@ from schemas import (
     ModelsLoaded,
     NERRequest,
     NERResponse,
+    SentimentBatchRequest,
+    SentimentBatchResponse,
     SentimentRequest,
     SentimentResponse,
     SummarizeRequest,
@@ -205,6 +207,18 @@ def sentiment(req: SentimentRequest) -> SentimentResponse:
         score=round(float(result["score"]), 6),
         text=req.text,
     )
+
+
+@app.post("/sentiment/batch", response_model=SentimentBatchResponse, tags=["NLP"])
+def sentiment_batch(req: SentimentBatchRequest) -> SentimentBatchResponse:
+    """Process up to 100 texts in a single batched inference call."""
+    pipe = _get_model("sentiment")
+    raw = pipe(req.texts)
+    results = [
+        SentimentResponse(label=r["label"], score=round(float(r["score"]), 6), text=t)
+        for r, t in zip(raw, req.texts)
+    ]
+    return SentimentBatchResponse(results=results, count=len(results))
 
 
 @app.post("/ner", response_model=NERResponse, tags=["NLP"])
