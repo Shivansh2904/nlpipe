@@ -4,7 +4,7 @@ Pydantic v2 request and response schemas for NLPipe API.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from typing import Dict, List
 from pydantic import BaseModel, Field, field_validator
 
 
