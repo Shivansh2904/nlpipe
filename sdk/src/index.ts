@@ -119,7 +119,7 @@ type HttpMethod = 'GET' | 'POST';
 async function parseError(response: Response): Promise<NLPipeError> {
   let detail = `HTTP ${response.status}`;
   try {
-    const body = await response.json();
+    const body = (await response.json()) as { detail?: string } | null;
     detail = body?.detail ?? JSON.stringify(body);
   } catch {
     detail = await response.text().catch(() => detail);
