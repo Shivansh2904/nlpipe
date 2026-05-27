@@ -274,11 +274,27 @@ Response: `{ status, models_loaded: { sentiment, ner, classifier, summarizer, ke
 ### `GET /models`
 Response: array of `{ name, task, loaded, approx_size_mb, description }`
 
+### Rate Limiting
+
+NLPipe ships with per-IP rate limiting (powered by [`slowapi`](https://github.com/laurentS/slowapi)) so that a self-hosted instance can safely be exposed to the public internet without a single client monopolizing inference time.
+
+| Scope | Limit |
+|-------|-------|
+| **Default** (all endpoints) | `100` requests / minute / IP |
+| `POST /summarize` (heavy) | `10` requests / minute / IP |
+| `POST /translate` (heavy) | `15` requests / minute / IP |
+| `POST /classify` | `20` requests / minute / IP |
+| `POST /sentiment/batch` | `30` requests / minute / IP |
+| `POST /sentiment`, `POST /ner`, `POST /keywords` | default `100/min` |
+
+When a client exceeds its limit, the API responds with **HTTP `429 Too Many Requests`** and a `Retry-After` header indicating how many seconds to wait before retrying. Limits are tracked in-memory per server process and reset every rolling minute.
+
 ### Error codes
 | Code | Meaning |
 |------|---------|
 | `422` | Validation error (empty text, bad input shape) |
 | `413` | Text exceeds 10,000-character limit |
+| `429` | Rate limit exceeded — see `Retry-After` header |
 | `500` | Unexpected server error |
 
 Every response includes an `X-Process-Time` header with inference duration in seconds.

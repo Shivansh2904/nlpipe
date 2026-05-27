@@ -11,6 +11,9 @@ from typing import Any, Dict, List
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from schemas import (
     ClassifyRequest,
@@ -48,6 +51,8 @@ from models import (
 
 _START_TIME = time.monotonic()
 
+limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+
 app = FastAPI(
     title="NLPipe",
     description=(
@@ -58,6 +63,9 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Allow all origins (playground dev server, curl, SDK consumers)
 app.add_middleware(
@@ -210,7 +218,8 @@ def sentiment(req: SentimentRequest) -> SentimentResponse:
 
 
 @app.post("/sentiment/batch", response_model=SentimentBatchResponse, tags=["NLP"])
-def sentiment_batch(req: SentimentBatchRequest) -> SentimentBatchResponse:
+@limiter.limit("30/minute")
+def sentiment_batch(request: Request, req: SentimentBatchRequest) -> SentimentBatchResponse:
     """Process up to 100 texts in a single batched inference call."""
     pipe = _get_model("sentiment")
     raw = pipe(req.texts)
@@ -246,7 +255,8 @@ def ner(req: NERRequest) -> NERResponse:
 
 
 @app.post("/classify", response_model=ClassifyResponse, tags=["NLP"])
-def classify(req: ClassifyRequest) -> ClassifyResponse:
+@limiter.limit("20/minute")
+def classify(request: Request, req: ClassifyRequest) -> ClassifyResponse:
     """
     Zero-shot classification: assign confidence scores to each candidate label
     without any task-specific training.
@@ -268,7 +278,8 @@ def classify(req: ClassifyRequest) -> ClassifyResponse:
 
 
 @app.post("/summarize", response_model=SummarizeResponse, tags=["NLP"])
-def summarize(req: SummarizeRequest) -> SummarizeResponse:
+@limiter.limit("10/minute")
+def summarize(request: Request, req: SummarizeRequest) -> SummarizeResponse:
     """
     Abstractively summarize long-form text.
 
@@ -333,7 +344,8 @@ def keywords(req: KeywordsRequest) -> KeywordsResponse:
 
 
 @app.post("/translate", response_model=TranslateResponse, tags=["NLP"])
-def translate(req: TranslateRequest) -> TranslateResponse:
+@limiter.limit("15/minute")
+def translate(request: Request, req: TranslateRequest) -> TranslateResponse:
     """
     Translate text between languages using Helsinki-NLP opus-mt models.
 
