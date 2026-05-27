@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/React-18-61dafb?style=for-the-badge&logo=react&logoColor=black" alt="React 18" />
   <img src="https://img.shields.io/badge/Docker-Compose-2496ed?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT License" />
-  <img src="https://img.shields.io/github/actions/workflow/status/shivansh-mishra/nlpipe/ci.yml?branch=main&style=for-the-badge&label=CI" alt="CI" />
+  <img src="https://img.shields.io/github/actions/workflow/status/Shivansh2904/nlpipe/ci.yml?branch=main&style=for-the-badge&label=CI" alt="CI" />
 </p>
 
 <p align="center">
@@ -68,7 +68,7 @@ NLPipe is a production-grade NLP inference server that wraps best-in-class Huggi
 ### Option A — Docker Compose (recommended)
 
 ```bash
-git clone https://github.com/shivansh-mishra/nlpipe.git
+git clone https://github.com/Shivansh2904/nlpipe.git
 cd nlpipe
 docker-compose up
 ```
