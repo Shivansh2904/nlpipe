@@ -150,6 +150,8 @@ curl http://localhost:8000/health
 # → {"status":"ok","models_loaded":{...},"uptime_seconds":142.3}
 ```
 
+> **Python demo:** A runnable end-to-end Python example that exercises every endpoint lives in [`examples/demo.py`](examples/demo.py). See [`examples/README.md`](examples/README.md) for usage.
+
 ---
 
 ## TypeScript SDK
