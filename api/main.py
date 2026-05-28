@@ -18,6 +18,8 @@ from slowapi.errors import RateLimitExceeded
 from schemas import (
     ClassifyRequest,
     ClassifyResponse,
+    DetectLanguageRequest,
+    DetectLanguageResponse,
     Entity,
     HealthResponse,
     Keyword,
@@ -373,5 +375,37 @@ def translate(request: Request, req: TranslateRequest) -> TranslateResponse:
         translation=translation,
         source_lang=req.source_lang,
         target_lang=req.target_lang,
+        text=req.text,
+    )
+
+
+@app.post("/detect-language", response_model=DetectLanguageResponse, tags=["NLP"])
+def detect_language(req: DetectLanguageRequest) -> DetectLanguageResponse:
+    """
+    Detect the language of input text.
+
+    Uses the lightweight `langdetect` library (no model download). Returns an
+    ISO 639-1 language code and the detector's confidence for the top guess.
+    """
+    _validate_text_length(req.text)
+    try:
+        from langdetect import detect_langs, DetectorFactory
+    except ImportError as exc:  # pragma: no cover
+        raise HTTPException(
+            status_code=500, detail="langdetect not installed"
+        ) from exc
+
+    # Make detection deterministic across calls.
+    DetectorFactory.seed = 0
+    try:
+        top = detect_langs(req.text)[0]
+    except Exception as exc:
+        raise HTTPException(
+            status_code=422, detail=f"Could not detect language: {exc}"
+        ) from exc
+
+    return DetectLanguageResponse(
+        language=top.lang,
+        confidence=round(float(top.prob), 6),
         text=req.text,
     )

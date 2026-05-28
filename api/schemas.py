@@ -179,6 +179,25 @@ class TranslateResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Language Detection
+# ---------------------------------------------------------------------------
+
+class DetectLanguageRequest(BaseModel):
+    text: str = Field(..., min_length=1, max_length=10_000)
+
+    @field_validator("text")
+    @classmethod
+    def validate_text(cls, v: str) -> str:
+        return _non_empty_text(v)
+
+
+class DetectLanguageResponse(BaseModel):
+    language: str = Field(..., description="ISO 639-1 language code (e.g. 'en', 'fr')")
+    confidence: float = Field(..., description="Detector confidence between 0 and 1")
+    text: str
+
+
+# ---------------------------------------------------------------------------
 # Health & Models
 # ---------------------------------------------------------------------------
 

@@ -88,6 +88,12 @@ export interface TranslateResult {
   text: string;
 }
 
+export interface DetectLanguageResult {
+  language: string;
+  confidence: number;
+  text: string;
+}
+
 export interface ModelsLoaded {
   sentiment: boolean;
   ner: boolean;
@@ -270,6 +276,16 @@ export class NLPipeClient {
       source_lang: sourceLang,
       target_lang: targetLang,
     });
+  }
+
+  /**
+   * Detect the language of the given text.
+   *
+   * @param text - Input text to analyse.
+   * @returns ISO 639-1 language code and a confidence score.
+   */
+  async detectLanguage(text: string): Promise<DetectLanguageResult> {
+    return this.request<DetectLanguageResult>('POST', '/detect-language', { text });
   }
 
   /**

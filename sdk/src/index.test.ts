@@ -292,6 +292,34 @@ describe('NLPipeClient', () => {
   });
 
   // -------------------------------------------------------------------------
+  // detectLanguage()
+  // -------------------------------------------------------------------------
+
+  describe('detectLanguage()', () => {
+    it('returns language, confidence, and text on success', async () => {
+      mockFetch(200, { language: 'fr', confidence: 0.99, text: 'Bonjour le monde' });
+
+      const result = await client.detectLanguage('Bonjour le monde');
+
+      expect(result.language).toBe('fr');
+      expect(result.confidence).toBeCloseTo(0.99);
+      expect(result.text).toBe('Bonjour le monde');
+    });
+
+    it('posts to /detect-language with the text in the body', async () => {
+      mockFetch(200, { language: 'en', confidence: 0.97, text: 'Hello there' });
+      const mock = global.fetch as jest.Mock;
+
+      await client.detectLanguage('Hello there');
+
+      const url = mock.mock.calls[0][0] as string;
+      const body = JSON.parse((mock.mock.calls[0][1] as RequestInit).body as string);
+      expect(url).toContain('/detect-language');
+      expect(body.text).toBe('Hello there');
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // health()
   // -------------------------------------------------------------------------
 

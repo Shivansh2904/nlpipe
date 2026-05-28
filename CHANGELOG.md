@@ -8,8 +8,16 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 ## [Unreleased]
 
 ### Added
+- **Language detection** — `POST /detect-language` (powered by `langdetect`, no model download) returns an ISO 639-1 code + confidence; mirrored by `detectLanguage()` in the SDK with 2 new tests
+- `Makefile` orchestrating api, sdk, and playground subprojects
+- Render.com `render.yaml` deploy blueprint (Standard plan + 10 GB HF cache disk)
+- GitHub issue and PR templates
+- `examples/demo.py` exercising all endpoints
 - Weekly Dependabot updates for pip (`/api`), npm (`/sdk` and `/playground`), and GitHub Actions
 - `CONTRIBUTING.md` covering API, SDK, and playground development
+
+### Fixed
+- SDK `test` script now runs on Windows too (was `node_modules/.bin/jest`, a shell wrapper that Node can't parse on Windows; now points at `node_modules/jest/bin/jest.js`)
 
 ## [1.3.0] — 2026-05-27
 

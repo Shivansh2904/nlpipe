@@ -60,6 +60,7 @@ NLPipe is a production-grade NLP inference server that wraps best-in-class Huggi
 | **Text Summarization** | `sshleifer/distilbart-cnn-12-6` | long text | abstractive summary |
 | **Keyword Extraction** | NLTK/TF-IDF (sklearn) | text | ranked keywords + scores |
 | **Translation** | `Helsinki-NLP/opus-mt-{src}-{target}` | text + language codes | translated text (loaded on demand per language pair) |
+| **Language Detection** | `langdetect` (no model download) | text | ISO 639-1 language code + confidence |
 
 ---
 
@@ -153,6 +154,12 @@ curl -X POST http://localhost:8000/translate \
   -d '{"text": "Hello, how are you?", "source_lang": "en", "target_lang": "fr"}'
 # → {"translation":"Bonjour, comment allez-vous ?","source_lang":"en","target_lang":"fr","text":"..."}
 
+# Language Detection (langdetect, no model download)
+curl -X POST http://localhost:8000/detect-language \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Bonjour le monde, comment allez-vous?"}'
+# → {"language":"fr","confidence":0.999998,"text":"..."}
+
 # Health Check
 curl http://localhost:8000/health
 # → {"status":"ok","models_loaded":{...},"uptime_seconds":142.3}
@@ -211,6 +218,10 @@ console.log(tr.translation);  // Bonjour, comment allez-vous ?
 // Translate with explicit language codes
 const tr2 = await nlp.translate('Good morning', 'en', 'de');
 console.log(tr2.translation);  // Guten Morgen
+
+// Detect language
+const lang = await nlp.detectLanguage('Bonjour le monde');
+console.log(lang.language, lang.confidence);  // fr 0.9999
 ```
 
 All methods return fully typed `Promise<T>` results. Errors throw `NLPipeError` with `statusCode` and `detail` properties.
