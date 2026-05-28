@@ -1,5 +1,5 @@
 fastapi>=0.109
-uvicorn[standard]>=0.27
+uvicorn[standard]>=0.48.0
 transformers>=4.37
 torch>=2.1
 scikit-learn>=1.3
